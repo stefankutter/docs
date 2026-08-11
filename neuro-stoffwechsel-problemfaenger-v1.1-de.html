@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neuro-Stoffwechsel-Problemfänger v1.1</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#1f2933; --muted:#69707d; --line:#e3e7ec;
+    --accent:#2b7a78; --accent-soft:#e3efee; --under:#3a6ea5; --over:#a3562b;
+    --primer:#2b7a78; --mixed:#6b6f76; --warn:#8a3b2e; --warnbg:#fbeeea;
+    --copper:#7a4fa3; --lowcat:#b07d1e; --lowgaba:#3f7d6b; --lowsero:#4a5aa0;
+    --hist:#a8324a; --sulf:#5566b5; --methyl:#b06a1e; --zinc:#2b7a78;
+    --radius:14px; --shadow:0 1px 3px rgba(20,30,40,.06),0 8px 24px rgba(20,30,40,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:760px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:1.5rem;letter-spacing:-.01em;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:.95rem;margin:0}
+  .disclaimer{background:var(--warnbg);color:var(--warn);border:1px solid #f0d5cd;border-radius:10px;padding:12px 14px;font-size:.82rem;margin:18px 0 18px}
+  .disclaimer b{font-weight:600}
+  .htr{background:#eef6f5;border:1px solid #cfe6e3;border-radius:12px;padding:14px 16px;margin-bottom:22px;font-size:.86rem}
+  .htr h3{margin:0 0 6px;font-size:.92rem;color:var(--accent)} .htr ul{margin:6px 0 0;padding-left:18px} .htr li{margin:4px 0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;margin-bottom:18px;overflow:hidden}
+  .card.hero{border-color:#cfe6e3;box-shadow:0 2px 10px rgba(43,122,120,.10)}
+  .card h2{font-size:1.02rem;margin:0 0 2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .card .axis-note{color:var(--muted);font-size:.83rem;margin:0 0 14px}
+  .tag{font-size:.66rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+  .q{padding:14px 0;border-top:1px solid var(--line)} .q:first-of-type{border-top:none}
+  .q-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .q-title{font-weight:600;font-size:.94rem} .q-weight{font-size:.68rem;color:var(--muted);white-space:nowrap}
+  .q-measure{color:var(--muted);font-size:.8rem;margin:2px 0 10px}
+  .poles{display:flex;justify-content:space-between;gap:12px;font-size:.78rem;color:var(--muted);margin-bottom:6px}
+  .poles .r{text-align:right}.poles .l,.poles .r{max-width:47%}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:999px;background:var(--line);outline:none;margin:6px 0 2px;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.22);cursor:pointer;transition:transform .08s ease}
+  input[type=range]::-webkit-slider-thumb:active{transform:scale(1.12)}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.22);cursor:pointer}
+  .ticks{display:flex;justify-content:space-between;font-size:.66rem;color:#aab0b8;padding:0 2px}
+  .iq{padding:14px 0;border-top:1px solid var(--line)} .iq:first-of-type{border-top:none}
+  .iq .qq{font-weight:600;font-size:.95rem;margin-bottom:2px}
+  .iq .hint{font-size:.78rem;color:var(--muted);margin-bottom:8px}
+  .iq select,.rx select,.field select,.field input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:.9rem;background:#fff}
+  .field-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:4px} .field{flex:1;min-width:150px}
+  .field label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:4px;font-weight:600}
+  .hint{font-size:.74rem;color:var(--muted);margin-top:3px}
+  .unit-toggle{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-left:6px}
+  .unit-toggle button{border:none;background:#f2f4f6;padding:4px 10px;cursor:pointer;font-size:.78rem} .unit-toggle button.on{background:var(--accent);color:#fff}
+  .conf-row{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:.88rem}
+  .conf-row input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);flex:none}
+  /* Reaktions-Panel – Dropdowns bleiben im Rahmen */
+  .rx{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 14px;padding:12px 0;border-top:1px solid var(--line)} .rx:first-of-type{border-top:none}
+  .rx>div{flex:1 1 220px;min-width:0}
+  .rx .name{font-size:.92rem;font-weight:600} .rx .desc{font-size:.78rem;color:var(--muted);margin-top:2px}
+  .rx select{flex:1 1 190px;min-width:0;max-width:100%}
+  details.opt{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 20px;margin-bottom:18px}
+  details.opt summary{cursor:pointer;font-weight:600;font-size:1rem} details.opt .inner{margin-top:14px}
+  .btn{display:inline-block;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:14px 22px;font-size:1rem;font-weight:600;cursor:pointer;width:100%;transition:filter .12s ease}
+  .btn:hover{filter:brightness(1.06)} .btn.secondary{background:#eef1f4;color:var(--ink);border:1px solid var(--line)}
+  #results{display:none;margin-top:26px}
+  .trap{border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:10px;padding:14px 16px;margin-bottom:12px;background:var(--panel)}
+  .trap h4{margin:0 0 4px;font-size:1rem} .trap p{margin:4px 0;font-size:.88rem} .trap .fix{font-size:.88rem}
+  .result-band{padding:20px 22px;color:#fff;border-radius:var(--radius) var(--radius) 0 0}
+  .result-band .kicker{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;opacity:.9}
+  .result-band h2{margin:2px 0 4px;font-size:1.28rem;letter-spacing:-.01em;color:#fff} .result-band .conf{font-size:.83rem;opacity:.95}
+  .result-body{padding:20px 22px;background:var(--panel);border:1px solid var(--line);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:var(--shadow);margin-bottom:18px}
+  .result-body h3{font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:18px 0 6px} .result-body h3:first-child{margin-top:0}
+  .result-body p,.result-body li{font-size:.9rem} .result-body ul{margin:4px 0;padding-left:20px}
+  .test-box{background:#eef6f5;border:1px solid #cfe6e3;border-radius:10px;padding:10px 14px;margin-top:10px;font-size:.85rem}
+  .sec-box{background:#f7f5fb;border:1px solid #e6dff2;border-radius:10px;padding:12px 14px;margin:8px 0;font-size:.86rem}
+  .cham{margin-top:16px;border-top:1px dashed var(--line);padding-top:14px}
+  .cham details{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0;background:#fafbfc}
+  .cham summary{cursor:pointer;font-weight:600;font-size:.9rem} .cham details p{margin:6px 0;font-size:.87rem}
+  .cham .lab-btn{margin-top:12px;background:var(--accent);color:#fff;border:none;border-radius:9px;padding:11px 16px;font-weight:600;cursor:pointer;font-size:.9rem;width:100%}
+  .rule{font-family:ui-monospace,Menlo,monospace;font-size:.76rem;background:#f2f4f6;border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:#3a4048;margin-top:6px}
+  .warn-box{background:var(--warnbg);border:1px solid #f0d5cd;color:var(--warn);border-radius:10px;padding:12px 14px;font-size:.83rem;margin-top:8px}
+  .flag-box{background:#fff8e6;border:1px solid #f0e3b8;color:#7a5b12;border-radius:10px;padding:12px 14px;font-size:.84rem;margin:8px 0}
+  .ebtag{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.03em;padding:2px 6px;border-radius:5px;vertical-align:middle;margin-right:5px} .eb{background:#e2f0e6;color:#256c3a}.model{background:#eae4f2;color:#5b3f86}
+  .scores{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .score{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .score .name{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)} .score .val{font-size:1.25rem;font-weight:700;margin:2px 0}
+  .bar{height:7px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:6px} .bar>i{display:block;height:100%;border-radius:999px}
+  details.math{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:18px;font-size:.85rem} details.math summary{cursor:pointer;font-weight:600}
+  .fit-btns{display:flex;gap:10px;margin:10px 0} .fit-btns button{flex:1;padding:11px;border-radius:10px;border:1px solid var(--line);background:#f7f9fa;cursor:pointer;font-size:.9rem;font-weight:600} .fit-btns button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:.9rem;resize:vertical;margin-top:6px}
+  .copied{color:var(--accent);font-size:.82rem;margin-left:8px;opacity:0;transition:opacity .2s}
+  footer{color:var(--muted);font-size:.76rem;margin-top:24px;text-align:center} a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Neuro-Stoffwechsel-Problemfänger <span style="font-weight:400;color:var(--muted);font-size:1rem">v1.1</span></h1>
+    <p class="sub">Vier schnelle Fragen finden deine wahrscheinliche Stoffwechsel-Falle – dann ordnet die Tiefen-Analyse deinen Biotyp zu.</p>
+  </header>
+
+  <div class="disclaimer"><b>Zuerst lesen.</b> Edukativ, keine Diagnose, kein ärztlicher Rat. Die Modelle sind unterschiedlich gut belegt (in den Ergebnissen als „solide" markiert, wenn studienbelegt – oder als „Modell", wenn nur nach orthomolekularer Typisierung konsistent). Ergebnis = Hypothese + Labor-Liste fürs Arztgespräch. Der Fragebogen ist rein statisch im Browser – es werden keine Daten an einen Server gesendet, außer du entscheidest dich am Ende bewusst, ein Feedback über dein eigenes E-Mail-Programm zu senden.</div>
+
+  <div class="htr">
+    <h3>So beantwortest du den Fragebogen (30 Sek.)</h3>
+    <ul>
+      <li>Dein Grundzustand ist gefragt, nicht die schlimmste Woche. Antworte einfach, wie du überwiegend bist.</li>
+      <li>„Weiß nicht" ist völlig okay – bitte nichts erfinden, nichts hinbiegen.</li>
+      <li>Die vier Startfragen geben Signale für die Hauptrichtung. Danach wird es genauer in entsprechenden Unterfragen.</li>
+    </ul>
+  </div>
+
+  <section class="card hero">
+    <h2><span class="tag">Schnell-Check</span> Deine vier Startfragen</h2>
+    <p class="axis-note">Deine Reaktion auf einen bestimmten Stoff / ein Lebensmittel kann mehr aussagen als allgemeine Symptomatik.</p>
+    <div class="iq">
+      <div class="qq">1 · Histamin / Mastzellen</div>
+      <div class="hint">Wie fühlst du dich 30–60 Min. nach fermentiertem (Sauerkraut/Kefir), gereiftem Käse, Rotwein oder aufgewärmtem Fleisch?</div>
+      <select id="ph1" data-flag="hist"><option value="0">Weiß nicht / meide ich</option><option value="0b">Kein Problem</option><option value="1">Leicht unwohl / müde</option><option value="2">Deutlich: Angst, Hitzeschub, Herzrasen oder schlaflos</option></select>
+    </div>
+    <div class="iq">
+      <div class="qq">2 · Schwefel / Sulfit (SUOX)</div>
+      <div class="hint">Warst du je nach NAC, MSM, Bittersalz, sulfitreichem Wein/Trockenobst oder sehr viel Knoblauch/Zwiebel unerklärlich aufgedreht, gereizt oder schlaflos?</div>
+      <select id="ph2" data-flag="sulf"><option value="0">Weiß nicht / nie bewusst</option><option value="0b">Nein, gut vertragen</option><option value="1">Vielleicht, leicht</option><option value="2">Ja, deutlich</option></select>
+    </div>
+    <div class="iq">
+      <div class="qq">3 · Methylierung / B-Komplex</div>
+      <div class="hint">Wenn du einen aktiven B-Komplex (mit Methylfolat/Methyl-B12) nimmst – kommt zeitnah (Stunden bis 1–2 Tage) ein Schub aus Nervosität, Reizbarkeit oder Gelenkschmerz?</div>
+      <select id="ph3" data-flag="methyl"><option value="0">Weiß nicht / nie genommen</option><option value="0b">Nein, gut vertragen</option><option value="1">Etwas unruhig</option><option value="2">Ja, deutlicher Nervositäts-Schub</option></select>
+    </div>
+    <div class="iq">
+      <div class="qq">4 · Zink / Pyrrol (innere Anspannung)</div>
+      <div class="hint">Chronische innere Anspannung, weiße Flecken auf den Fingernägeln, kaum Traumerinnerung – und schon normaler Stress überfordert dich?</div>
+      <select id="ph4" data-flag="pyrrole"><option value="0">Trifft nicht zu</option><option value="1">Teils / einiges davon</option><option value="2">Trifft stark zu</option></select>
+    </div>
+  </section>
+
+  <section class="card" data-axis="1">
+    <h2><span class="tag">Tiefe · Achse 1</span> Methylierung – das Grundtempo</h2>
+    <p class="axis-note">Untermethyliert vs. übermethyliert. Fast alle sind angespannt – hier zählt die ART der Anspannung. Beide Ausrichtungen (a &amp; b) können bei einigen hoch sein. Unsicher? → Mitte.</p>
+  </section>
+  <section class="card" data-axis="C">
+    <h2><span class="tag">Tiefe · Kupfer</span> Kupfer &amp; Hormone</h2>
+    <p class="axis-note">Kupfer steigt oft mit Östrogen. Wähle unten dein Hormon-Ereignis und wie stark deine Kupfer-Zeichen sind.</p>
+    <div class="field" style="margin-bottom:8px"><label>Hormon-Ereignis</label>
+      <select id="horm"><option value="none">Keins</option><option value="pille">Östrogen-Pille</option><option value="spirale">Kupferspirale</option><option value="postpartum">Schwangerschaft / postpartum</option><option value="perimeno">Perimenopause</option></select></div>
+  </section>
+  <section class="card" data-axis="2">
+    <h2><span class="tag">Tiefe · Achse 2</span> Pyrrol / Stress</h2>
+    <p class="axis-note">Links = normal, rechts = starkes Zeichen.</p>
+  </section>
+  <section class="card" data-axis="3">
+    <h2><span class="tag">Tiefe · Achse 3</span> Histamin</h2>
+    <p class="axis-note">Links = wenig, rechts = stark.</p>
+  </section>
+  <section class="card" data-axis="B">
+    <h2><span class="tag">Neurotransmitter</span> Welches System ist erschöpft?</h2>
+    <p class="axis-note">Links = passt nicht, rechts = trifft meine Situation stark.</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="tag">Warnleuchten</span> Reaktionen auf Supplemente</h2>
+    <p class="axis-note">Nur was für dich relevant ist – je nach deinen Startfragen kommen hier gezielt Fragen dazu. „Weiß nicht / nie genommen" ist immer die erste Option.</p>
+    <div id="rxList"></div>
+    <p class="hint" id="rxEmptyNote" style="display:none">Beantworte die vier Startfragen oben – dann erscheinen hier passende Reaktions-Fragen.</p>
+  </section>
+
+  <details class="opt">
+    <summary>Optional: Laster-Konsum &amp; Kontext (für den Laster-Selbstmedikations-Teil des Ergebnisses)</summary>
+    <div class="inner">
+      <div class="field-row">
+        <div class="field"><label>Biologisches Geschlecht</label><select id="sex"><option value="">—</option><option value="f">Weiblich</option><option value="m">Männlich</option></select></div>
+        <div class="field"><label>Körpergewicht <span class="unit-toggle" id="unitTog"><button data-u="kg" class="on">kg</button><button data-u="lb">lb</button></span></label><input type="number" id="weight" min="20" max="400" placeholder="z.B. 70" /></div>
+      </div>
+      <div class="field-row" style="margin-top:10px">
+        <div class="field"><label>Koffein – Portionen/Tag</label><input type="number" id="v-caf" min="0" max="20" step="1" placeholder="0" /></div>
+        <div class="field"><label>Nikotin – Zig./Tag</label><input type="number" id="v-nic" min="0" max="60" step="1" placeholder="0" /></div>
+        <div class="field"><label>Alkohol – Gläser/Woche</label><input type="number" id="v-alc" min="0" max="100" step="1" placeholder="0" /></div>
+        <div class="field"><label>Zucker – süße Portionen/Tag</label><input type="number" id="v-sug" min="0" max="20" step="1" placeholder="0" /></div>
+      </div>
+      <label class="conf-row" style="margin-top:10px"><input type="checkbox" id="cx-thyroid"> Schilddrüsenerkrankung / -Medikament</label>
+      <label class="conf-row"><input type="checkbox" id="cx-meds"> Nehme SSRI/SNRI, Antihistaminikum oder Säureblocker (PPI)</label>
+    </div>
+  </details>
+
+  <button class="btn" id="calc">Mein Muster berechnen</button>
+
+  <div id="results">
+    <div id="trapWrap"></div>
+    <div class="scores" id="scores"></div>
+    <details class="math" id="mathPanel"><summary>Rechenweg &amp; Regel anzeigen</summary><div id="mathBody"></div></details>
+    <div class="result-band" id="resultBand"><div class="kicker" id="resKicker">Biotyp</div><h2 id="resTitle"></h2><div class="conf" id="resConf"></div></div>
+    <div class="result-body" id="resBody"></div>
+    <div class="card" id="consumptionCard"></div>
+    <div class="card" id="supportCard"></div>
+    <div class="card" id="tellsCard"></div>
+    <div class="card">
+      <h2>Trifft das zu?</h2>
+      <p class="sub">Feedback erwünscht – hat es gepasst, was war daneben?</p>
+      <div class="fit-btns" id="fitBtns"><button data-fit="Ja">Ja, passt</button><button data-fit="Teilweise">Teilweise</button><button data-fit="Nein">Nein, daneben</button></div>
+      <textarea id="fbText" placeholder="Was war daneben oder fehlt?"></textarea>
+      <label class="conf-row" style="margin-top:8px"><input type="checkbox" id="fbFull"> Vollständige Antworten mitschicken (bleibt auf deinem Gerät bis Senden)</label>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn" id="mailBtn" style="flex:1;min-width:180px">Feedback per E-Mail</button>
+        <button class="btn secondary" id="copyBtn" style="flex:1;min-width:150px">Kopieren</button>
+        <span class="copied" id="copiedMsg">Kopiert ✓</span>
+      </div>
+      <p class="hint" style="margin-top:8px">Kein Backend, kein Tracking, keine Speicherung.</p>
+    </div>
+  </div>
+
+  <footer>Nur zu Bildungszwecken. Kein ärztlicher Rat, keine Diagnose. Modelle nicht in kontrollierten Studien validiert.</footer>
+</div>
+
+<script>
+var FEEDBACK_EMAIL="kutterstefan@gmail.com", FEEDBACK_FORM_URL="";
+var SHOW_WEIGHTS=false; // Marker: Gewichts-Anzeige aus. Auf true → einblenden.
+
+var AXES={
+  1:{bipolar:true,items:[
+    {id:"q2a",w:1.25,bipolar:false,title:"Nach innen getrieben (Unter-Muster)",measure:"",l:"Locker – ich setze mich selbst nicht unter Druck",r:"Getrieben – innerer Druck, hohe Standards, Ungeduld, Gedankenrasen"},
+    {id:"q2b",w:1.25,bipolar:false,title:"Von außen überflutet (Über-Muster)",measure:"",l:"Gelassen – Reize von außen prallen weitgehend ab",r:"Überflutet – empfindlich auf Lärm/Gerüche/Stimmungen, will Rückzug"},
+    {id:"q1",w:1.0,title:"Wärme & Sekretion",measure:"",l:"Schwitze leicht, viel Speichel, warm",r:"Trockene Haut/Augen/Mund, schwitze kaum",lt:"Unter",rt:"Über"},
+    {id:"q3",w:1.5,title:"Chemie & Antihistaminika",measure:"",l:"Hohe Schmerztoleranz; Antihistaminika (falls genommen) machen mich eher aufgedreht",r:"Niedrige Schmerztoleranz; stark reizempfindlich (Parfüm/Chemie)",lt:"Unter",rt:"Über"},
+    {id:"q4",w:1.0,title:"Schlaf",measure:"",l:"Schlafe schnell ein, wache aber früh oder hellwach auf (teils mit Herzrasen)",r:"Kann vor Gedankenkreisen kaum einschlafen; wache erschöpft auf",lt:"Unter",rt:"Über"}
+  ]},
+  2:{bipolar:false,items:[
+    {id:"q5",w:1.25,title:"Traumerinnerung",measure:"Erinnerst du dich morgens an deine Träume?",l:"Ja, lebhaft und regelmäßig",r:"Selten bis nie"},
+    {id:"q6",w:1.5,title:"Morgendlicher Appetit / Übelkeit",measure:"",l:"Wache hungrig auf; frühstücke gern",r:"Morgens leicht übel oder kein echter Hunger – obwohl ich essen könnte"},
+    {id:"q8",w:1.25,title:"Stress-Schwelle",measure:"",l:"Halte anhaltenden Stress gut aus",r:"Plötzlicher Stress → sofort explosiv/überfordert"}
+  ]},
+  3:{bipolar:false,items:[
+    {id:"q9",w:2.0,title:"Dermographismus (Hautschrift nach Kratzer über den inneren Unterarm)",measure:"",l:"Nichts Besonderes – höchstens ein blasser Strich",r:"Die Stelle färbt sich schnell erkennbar rot (ggf. mit Quaddelbildung)"},
+    {id:"q10",w:2.0,title:"Reaktion auf Essen / DAO-Enzym",measure:"",l:"Vertrage Fermentiertes & Gereiftes problemlos",r:"Knochenbrühe/Sauerkraut/Wein/gereiftes Fleisch → Hirnnebel, Kopfschmerz, Bauchschmerzen"},
+    {id:"q11",w:1.0,title:"Bindegewebe",measure:"",l:"Feste Gelenke, robuste Haut",r:"Dünne Haut, knackende Gelenke, schnell blaue Flecken"},
+    {id:"q12",w:1.0,title:"Allergie / Atopie",measure:"",l:"Keine klassischen Allergien",r:"Starker Heuschnupfen, Asthma oder Nesselsucht"}
+  ]},
+  C:{bipolar:false,items:[
+    {id:"q7",w:1.5,title:"Kupfer-Zeichen (chronisch)",measure:"Gemeint ist dauerhaft / ohne klare Ursache – ein einmaliger Konzert-Tinnitus zählt nicht.",l:"Normale Licht- & Geräuschtoleranz",r:"Dauerhaftes Ohrgeräusch (ohne Lärm-Ursache), Licht blendet stark"}
+  ]},
+  B:{bipolar:false,items:[
+    {id:"nS",w:1,title:"Dunkle Wolke – ↓ Serotonin",measure:"",l:"Zuversichtlich, gelassen",r:"Grüblerisch, sorgenvoll, schlechter abends/im Winter, Süß-Heißhunger"},
+    {id:"nC",w:1,title:"Flacher Nebel – ↓ Katecholamine",measure:"",l:"Wach, motiviert ohne Stimulanzien",r:"Flach, antriebslos, Hirnnebel, brauche Kaffee zum Funktionieren"},
+    {id:"nG",w:1,title:"Überflutet – ↓ GABA",measure:"",l:"Kann gut abschalten",r:"Kann nicht abschalten, angespannt/steif, überdreht und zugleich erschöpft"}
+  ]}
+};
+
+var REACTIONS=[
+  {id:"r-zinc",name:"Zink (auf leeren Magen)",desc:"Spurenelement, bekanntester Selbsttest.",bad:"Schlecht: Übelkeit auf leeren Magen",help:"Hat spürbar geholfen/beruhigt",show:["always"],
+    b:{t:"pyrrole",m:"Sofort-Übelkeit von Zink = wenig Zink (Pyrrol)."},h:{t:"pyrrole",m:"Zink beruhigt schnell → warst wohl zinkdefizitär."}},
+  {id:"r-ssri",name:"SSRI / Antidepressivum",desc:"SSRI = gängige Antidepressiva, die Serotonin länger wirken lassen. Wie es wirkte, ist einer der schärfsten Hinweise.",bad:"Schlecht: aufgedreht/schlechter",help:"Hat geholfen",show:["always"],
+    b:{t:"over",m:"SSRI schlecht vertragen → Über/↓Folat oder Kupfer."},h:{t:"under",m:"SSRI half → Unter/↓Serotonin."}},
+  {id:"r-caf",name:"Koffein (niedrig dosiert)",desc:"Kennst du – der Punkt ist die Empfindlichkeit.",bad:"Schon bei wenig zittrig/nervös/Herzklopfen",help:"Vertrage viel locker",show:["always"],
+    b:{t:"over",m:"Nervös bei wenig Koffein = adrenerg (Über)."},h:{t:"under",m:"Viel Koffein locker = Unter."}},
+  {id:"r-folate",name:"Folsäure / Methylfolat",desc:"Vitamin B9. Verschiebt die Methylierung stark.",bad:"Schlecht: ängstlich/gedrückt/schlaflos",help:"Beruhigt / hilft",show:["methyl"],
+    b:{t:"under",m:"Folat verschlechtert dich → Unter."},h:{t:"over",m:"Folat beruhigt → Über."}},
+  {id:"r-same",name:"SAMe",desc:"Stärkster Methylgruppen-Spender.",bad:"Schlecht: aufgedreht/nervös/schlaflos",help:"Sanfter Stimmungs-Lift",show:["methyl"],
+    b:{t:"over",m:"SAMe dreht dich auf → Über."},h:{t:"under",m:"Sanfter Lift → Unter."}},
+  {id:"r-tmg",name:"TMG / Trimethylglycin („Methylglycin“)",desc:"Sanfter Methylgruppen-Spender aus Rüben.",bad:"Schlecht: überdreht/nervös",help:"Stabiler/klarer",show:["methyl"],
+    b:{t:"over",m:"Überdreht auf TMG → Über oder Cofaktor-Mangel."},h:{t:"under",m:"Stabiler auf TMG → Unter."}},
+  {id:"r-niacin",name:"Niacin / Niacinamid (B3)",desc:"Vitamin B3; als Niacin oft Hitze-/Rötungs-Schub.",bad:"Schlecht: flach/gedrückt (oder starker Hitzeschub)",help:"Ruhiger (Niacinamid)",show:["methyl"],
+    b:{t:"under",m:"Flach auf Niacin → Unter; starker Hitzeschub → Histamin."},h:{t:"over",m:"Ruhiger auf Niacinamid → Über."}},
+  {id:"r-b6",name:"Vitamin B6 / P5P",desc:"Cofaktor für Neurotransmitter & Träume.",bad:"Nachts lebhafte Träume/Schlaflosigkeit",help:"Träume kehren zurück",show:["methyl","pyrrole"],
+    b:{t:"pyrrole",m:"B6 macht abends Träume/schlaflos → vorher B6-arm."},h:{t:"pyrrole",m:"Träume kehren zurück → vorher B6-arm."}},
+  {id:"r-vitc",name:"Vitamin C (hochdosiert)",desc:"Hochdosiert wie ein natürliches Antihistaminikum.",bad:"Nur weicher Stuhl (nicht aussagekräftig)",help:"Beruhigt Allergien/Angst",show:["hist"],
+    b:{t:"histamine",m:"Weicher Stuhl = nur Darmtoleranz."},h:{t:"histamine",m:"C beruhigt Allergien → viel Histamin."}},
+  {id:"r-5htp",name:"5-HTP / L-Tryptophan",desc:"Vorstufen von Serotonin.",bad:"Schlecht: Übelkeit/Unruhe (Vorsicht bei SSRI!)",help:"Starke Ruhe / besserer Schlaf",show:["hist","pyrrole"],
+    b:{t:"histamine",m:"Übelkeit/Unruhe auf 5-HTP → serotonerge Überladung/Wechselwirkung."},h:{t:"under",m:"Starke Ruhe auf 5-HTP → ↓Serotonin (Unter)."}},
+  {id:"r-copper",name:"Kupfer (bspw. im Multivitamin)",desc:"Gegenspieler von Zink.",bad:"Schlecht: nervös/Herzrasen/Kopfschmerz",help:"Kein Problem",show:["copper"],
+    b:{t:"over",m:"Nervös nach Kupfer → Kupfer-Empfindlichkeit (Über)."},h:{t:"over",m:"Kein Problem → schwaches Indiz gegen Kupfer-Überladung."}}
+];
+
+function val(id){return parseInt(document.getElementById(id).value,10);}
+function num(id){var v=parseFloat(document.getElementById(id).value);return(!v||v<0)?0:v;}
+function rx(id){var e=document.getElementById(id);return e?e.value:"never";}
+function iv(id){var v=document.getElementById(id).value; if(v==="2")return 2; if(v==="1")return 1; return 0;}
+
+function buildAxis(n){
+  var cfg=AXES[n],sec=document.querySelector('.card[data-axis="'+n+'"]');
+  cfg.items.forEach(function(it){
+    var lt=(it.lt!==undefined?it.lt:"1"),rt=(it.rt!==undefined?it.rt:"5");
+    var d=document.createElement("div");d.className="q";
+    d.innerHTML='<div class="q-head"><span class="q-title">'+it.title+'</span>'+(SHOW_WEIGHTS?'<span class="q-weight">Gew. '+it.w.toFixed(2)+'</span>':'')+'</div>'
+      +(it.measure?'<div class="q-measure">'+it.measure+'</div>':'')
+      +'<div class="poles"><span class="l">'+it.l+'</span><span class="r">'+it.r+'</span></div>'
+      +'<input type="range" min="1" max="5" step="1" value="3" id="'+it.id+'" />'
+      +'<div class="ticks"><span>'+lt+'</span><span></span><span></span><span></span><span>'+rt+'</span></div>';
+    sec.appendChild(d);
+  });
+}
+function buildReactions(){
+  var host=document.getElementById("rxList");
+  REACTIONS.forEach(function(r){
+    var d=document.createElement("div");d.className="rx";d.id="wrap-"+r.id;
+    var opts='<option value="never">Weiß nicht / nie genommen</option><option value="fine">Gut vertragen</option><option value="bad">'+r.bad+'</option>'+(r.help?'<option value="help">'+r.help+'</option>':'');
+    d.innerHTML='<div><div class="name">'+r.name+'</div><div class="desc">'+r.desc+'</div></div><select id="'+r.id+'">'+opts+'</select>';
+    host.appendChild(d);
+  });
+}
+function activeFlags(){return {hist:iv("ph1")>=1,sulf:iv("ph2")>=1,methyl:iv("ph3")>=1,pyrrole:iv("ph4")>=1,copper:document.getElementById("horm").value!=="none"};}
+function updateReactionVisibility(){
+  var f=activeFlags(),shown=0;
+  REACTIONS.forEach(function(r){var vis=r.show.some(function(t){return t==="always"||f[t];});var el=document.getElementById("wrap-"+r.id);if(el)el.style.display=vis?"flex":"none";if(vis)shown++;});
+  document.getElementById("rxEmptyNote").style.display=shown?"none":"block";
+}
+function paintSliders(){document.querySelectorAll('input[type=range]').forEach(function(r){var p=function(){var x=(r.value-1)/4*100;r.style.background="linear-gradient(90deg,var(--accent-soft) "+x+"%,var(--line) "+x+"%)";};p();r.addEventListener("input",p);});}
+
+function methyl(){
+  var q1=val("q1"),q2a=val("q2a"),q2b=val("q2b"),q3=val("q3"),q4=val("q4");
+  // getrieben (q2a) → Unter (negativ); überflutet (q2b) → Über (positiv); beide hoch → 0 (ausgeglichen)
+  var c=[(q1-3)*1.0,(q2b-q2a)*0.625,(q3-3)*1.5,(q4-3)*1.0];
+  var maxN=9.5, net=c[0]+c[1]+c[2]+c[3];
+  var M=Math.max(0,Math.min(100,50+net/maxN*50));
+  var idx=0,b=-1;c.forEach(function(x,j){if(Math.abs(x)>b){b=Math.abs(x);idx=j;}});
+  var M2=Math.max(0,Math.min(100,50+(net-c[idx])/maxN*50));
+  return {M:M,M2:M2};
+}
+function pyrrole(){
+  var q5=val("q5"),q6=val("q6"),q8=val("q8");
+  var raw=(q5-1)*1.25+(q6-1)*1.5+(q8-1)*1.25,maxP=4*(1.25+1.5+1.25);
+  var P=raw/maxP*100;
+  var pB=iv("ph4")===2?18:(iv("ph4")===1?8:0);P=Math.min(100,P+pB);
+  var zinc=rx("r-zinc")==="bad";
+  var hard=zinc||(P>=60)||(q6>=5&&q8>=4)||(iv("ph4")===2&&(zinc||q6>=4));
+  var soft=(!hard)&&(P>=42);
+  return {P:P,hard:hard,soft:soft,zinc:zinc};
+}
+function copper(){
+  var hmap={none:0,pille:2,spirale:2.5,postpartum:2.5,perimeno:1.5};
+  var horm=hmap[document.getElementById("horm").value]||0,cr=rx("r-copper"),q7=val("q7");
+  var sym=(q7-1)*1.5,amp=horm+(cr==="bad"?2.5:(cr==="help"?-1:0));
+  return {pts:sym+amp,q7:q7,sym:sym,amp:amp};
+}
+function histamine(){
+  var raw=0,max=0;AXES[3].items.forEach(function(it){raw+=(val(it.id)-1)*it.w;max+=4*it.w;});
+  var H=raw/max*100;
+  if(iv("ph1")===2)H=Math.max(H,72);else if(iv("ph1")===1)H=Math.max(H,52);
+  return {H:H,band:H>=60?"high":(H<=40?"low":"moderate")};
+}
+function layerB(){var s=val("nS"),c=val("nC"),g=val("nG");var a=[["sero",s],["cat",c],["gaba",g]];a.sort(function(x,y){return y[1]-x[1];});return {s:s,c:c,g:g,dom:(a[0][1]>=4)?a[0][0]:null};}
+
+function score(){
+  var me=methyl(),py=pyrrole(),cu=copper(),hi=histamine(),nt=layerB(),ssri=rx("r-ssri");
+  var primary,secondary=null,rule,unclear=false;
+  if(py.hard){primary="primer";rule=py.zinc?"Zink-Übelkeit → PYRROL-OVERRIDE":"Pyrrol hoch (inkl. Startfrage 4) → PYRROL-OVERRIDE";}
+  else if(cu.pts>=7&&cu.q7>=3&&cu.amp>=1.5){primary="copper";rule="Kupfer: Symptom+Verstärker="+cu.pts.toFixed(1)+" → KUPFER";}
+  else if(me.M<=40&&me.M2<50){primary="under";rule="M="+me.M.toFixed(0)+" (hält ohne Top-Item) → UNTER";}
+  else if(me.M>=60&&me.M2>50){primary="over";rule="M="+me.M.toFixed(0)+" (hält ohne Top-Item) → ÜBER";}
+  else{unclear=true;
+    if(nt.dom==="sero")primary="lowsero";else if(nt.dom==="cat")primary="lowcat";else if(nt.dom==="gaba")primary="lowgaba";
+    else if(iv("ph3")===2||ssri==="bad")primary="over";else if(ssri==="help")primary="under";else primary="mixed";
+    rule="Motor unklar → "+(nt.dom?("Neurotransmitter ↓"+nt.dom):(iv("ph3")===2?"B-Komplex-Reaktion → Über":"GEMISCHT"));
+  }
+  if(!unclear&&nt.dom)secondary=nt.dom==="sero"?"lowsero":(nt.dom==="cat"?"lowcat":"lowgaba");
+  var flags=[];
+  if(primary==="over"&&nt.dom==="sero")flags.push("Motor sagt Über, Gefühl sagt ↓Serotonin – passt selten. Testen.");
+  if(primary==="over"&&hi.H>=60)flags.push("Histamin HOCH, aber Über sagt niedriges Histamin voraus – eher Mastzell-/DAO-Thema. Vollblut-Histamin testen.");
+  if(py.soft&&primary!=="primer")flags.push("Fundament zuerst: Pyrrol-Signale mäßig erhöht. Vor typ-spezifischen Schritten sinnvoll: Zink+B6 als sanfte Basis.");
+  var conf;
+  if(primary==="primer")conf=py.zinc?"Hoch (objektive Zink-Reaktion)":"Mittel–hoch";
+  else if(primary==="mixed")conf="Niedrig by design – erst Labor";
+  else if(unclear)conf="Motor unklar – Gefühls-Ebene führt, per Labor absichern";
+  else{var d=Math.abs(me.M-50);conf=(d>=22?"Hoch":(d>=12?"Mittel":"Niedrig – nah am Grenzbereich"));}
+  if(primary==="under"&&nt.dom==="sero")conf="Hoch (Motor & Gefühl stimmen überein)";
+  return {me:me,py:py,cu:cu,hi:hi,nt:nt,primary:primary,secondary:secondary,rule:rule,flags:flags,conf:conf};
+}
+
+function traps(s){
+  var out=[],ph1=iv("ph1"),ph2=iv("ph2"),ph3=iv("ph3"),ph4=iv("ph4");
+  if(ph1===2||(ph1===1&&s.hi.H>=55)||s.hi.H>=70) out.push({color:"var(--hist)",title:"Histamin-Mastzell-Falle",
+    fix:"<b>Sofort-Bremse:</b> Quercetin 250–500&nbsp;mg + Vitamin&nbsp;C + Omega-3 (stabilisiert Mastzell-Wände). Knochenbrühe & Multi-Stamm-Probiotika streichen. Wenn Probiotika, dann <b>histamin-abbauende Stämme</b> – <i>Lactobacillus plantarum</i> (kurbelt sogar die körpereigene DAO-Bildung an) und <i>Bifidobacterium longum/infantis</i>; histamin-<i>bildende</i> Stämme (L. casei, L. reuteri, L. bulgaricus) meiden.",
+    test:"Vollblut-Histamin, DAO im Serum."});
+  if(ph2===2||ph2===1) out.push({color:"var(--sulf)",title:"Sulfit-Schwefel-Falle",
+    fix:"<b>Sofort-Bremse:</b> Molybdän (~150&nbsp;µg) als Zündschlüssel für SUOX; Sulfit-Wein und Trockenobst meiden. <b>NAC weglassen</b> – eskaliert hier oft.",
+    test:"Klinisch über Elimination (Routine-Tests greifen bei der milden Form nicht)."});
+  if(ph3===2||ph3===1) out.push({color:"var(--methyl)",title:"Methylierungs-/B-Komplex-Falle",
+    fix:"<b>Sofort-Bremse:</b> Kombi-Präparate absetzen. Auf isolierte, nicht-methylierte Formen wechseln (Hydroxocobalamin, Folinsäure), einzeln und klein testen.",
+    test:"Homocystein, Vollblut-Histamin."});
+  if(ph4>=1||s.py.hard||s.py.P>=55) out.push({color:"var(--zinc)",title:"Zink-Pyrrol-Falle",
+    fix:"<b>Sofort-Bremse (Primer zuerst):</b> Zink 25–30&nbsp;mg zu einer Mahlzeit (zeitlich begrenzt, Kupfer beachten), P5P 20–50&nbsp;mg tagsüber, Magnesium (Glycinat) abends.",
+    test:"Plasma-Zink, Cu:Zn-Verhältnis."});
+  return out;
+}
+
+var TYPES={
+  primer:{color:"var(--primer)",kicker:"Priorität · Sicherheit zuerst",title:"Ausgebrannt aber Dauer-Angespannt — ↓ Zink & B6 (Pyrrol)",
+    body:"Morgens leicht übel / kein Hunger (echt, nicht Fasten), kaum Traumerinnerung, Stress macht sofort explosiv – oft nach einer langen harten Phase.",
+    mech:"Ein Nebenprodukt der Blutbildung (HPL) bindet Zink und Vitamin B6 und schwemmt sie über den Urin aus. Zink und B6 sind die gemeinsamen Bausteine für Serotonin, GABA (Beruhigung) und Dopamin (Antrieb) – fehlen beide, hungern alle drei Systeme. Zusätzlich fehlt Zink als physische Bremse am NMDA-Rezeptor (Glutamat). Stress beschleunigt den Verlust. [Modell]",
+    step:"Zink + B6 (Primer), zeitlich begrenzt, bevor Methyl-Spender genutzt werden (diese überfordern diesen Typ).",
+    test:"Plasma-Zink, Cu:Zn-Verhältnis; ggf. Kryptopyrrole im Urin (lichtgeschützt).",warn:"Zink nicht endlos ohne Kupfer-Kontrolle."},
+  under:{color:"var(--under)",kicker:"Motor-Zustand",title:"Getriebene Grübler / Perfektionist auf Histamin — Untermethylierung · ↓ Serotonin",
+    body:"Intensiv, perfektionistisch, innere Anspannung; willensstark, oft Allergien; SSRIs (gängige Antidepressiva, die Serotonin länger wirken lassen) haben dir eher geholfen.",
+    mech:"Folsäure ist hier die Falle. Sie kurbelt epigenetisch die Produktion des Serotonin-Transporters (SERT) an. Mehr Transporter saugen das ohnehin knappe Serotonin schneller aus dem Spalt ab. Ein B-Komplex mit Methylfolat verschlechtert diesen Typ. Methyl-Spender wie SAMe/Methionin drosseln die Transporter-Produktion (mehr Serotonin bleibt aktiv). Untermethylierer bauen zudem Histamin im Gehirn (via HNMT) schlechter ab. [Modell]",
+    step:"Methyl-Unterstützung (TMG/Methionin), Calcium, Vitamin C; ggf. 5-HTP. Synthetische Folsäure meiden.",
+    test:"Vollblut-Histamin (erwartet hoch), Homocystein.",warn:"5-HTP niemals mit einem SSRI (Serotonin-Syndrom). TMG niedrig starten."},
+  over:{color:"var(--over)",kicker:"Motor-Zustand",title:"Überempfindliche Sorger — Übermethylierung / ↓ Folat · ↑ Monoamine",
+    body:"Ängstlich, reiz- und chemikaliensensibel, „kann nicht abschalten“; SSRIs (gängige Antidepressiva) haben dich eher schlechter/aufgedreht gemacht.",
+    mech:"Das Spiegelbild vom Grübler-Typ. Zu viel Methyl-Aktivität blockiert die Transporter-Produktion. Serotonin und Dopamin stauen sich ungepuffert → Reizüberflutung. Folat ist hier die Bremse (hebt die Transporter), Methyl-Spender wirken als Brandbeschleuniger. Niacin dient als „Methyl-Schwamm“. Histamin wird extrem schnell abgebaut. [Modell]",
+    step:"Folat/Niacinamid, GABA-Seite (Theanin, Magnesium). TMG/SAMe/Methionin meiden.",
+    test:"Vollblut-Histamin (erwartet niedrig), Homocystein.",warn:"Niacin nur unretardiert in Mikro-Dosen; retardiert ist lebertoxisch."},
+  copper:{color:"var(--copper)",kicker:"Motor-Zustand",title:"Hormoneller Sturm — ↑ Kupfer / ↓ Zink",
+    body:"Angst/Panik und Schlaflosigkeit nach einem Hormon-Ereignis (Pille/Kupferspirale, Schwangerschaft, Perimenopause); schlechte Stresstoleranz.",
+    mech:"Kupfer treibt genau ein Enzym der Katecholamin-Kette an: Dopamin-Beta-Hydroxylase (DBH). Sie baut Dopamin rasend schnell zu Noradrenalin um. Das Resultat: zu viel Alarm (Noradrenalin), zu wenig Antrieb/Belohnung (Dopamin). Östrogen bindet Kupfer im Körper – deshalb eskaliert dieses Muster oft nach hormonellen Umstellungen. [solide für DBH; Typ-Einordnung Modell]",
+    step:"Zink/Kupfer-Balance mit Arzt. Zwingend vor Supplementierung testen.",
+    test:"Serum-Kupfer, Coeruloplasmin, Cu:Zn-Verhältnis.",warn:"Kupfer meiden. Zink langsam einschleichen."},
+  lowcat:{color:"var(--lowcat)",kicker:"Gefühlte Ebene",title:"Leere Akkus, Hirnnebel & Koffein-Tendenz — ↓ Katecholamine (Dopamin/Noradrenalin)",
+    body:"Nicht ängstlich, sondern leer – flach, antriebslos, Hirnnebel, Prokrastination; läufst auf Kaffee und sackst ohne ab.",
+    mech:"Chronischer Stress oder eine träge Schilddrüse leeren die Tyrosin-Speicher (Tyrosin → Dopamin → Noradrenalin). Koffein presst nur noch die letzten Tropfen der Botenstoffe heraus, überdeckt das Defizit aber, statt es zu füllen. [solide für Biochemie; Aminosäure-Typisierung Modell]",
+    step:"L-Tyrosin (vormittags), Schlaf & Schilddrüse prüfen; Koffein ausschleichen.",
+    test:"Schilddrüsen-Werte (TSH, fT3/fT4), Ferritin, B12.",warn:"Tyrosin hebt den Blutdruck; Vorsicht bei Schilddrüsenüberfunktion."},
+  lowgaba:{color:"var(--lowgaba)",kicker:"Gefühlte Ebene",title:"Ungebremste Daueranspannung – auch physisch — ↓ GABA",
+    body:"Körperlich angespannt/steif, überdreht und zugleich erschöpft; Stress staut sich im Körper.",
+    mech:"GABA (Bremse) wird aus Glutamat (Gas) gebaut. Fehlt B6, klemmt das GAD-Enzym: Das Gaspedal bleibt gedrückt, die Bremse fehlt. Geschlucktes GABA scheitert oft an der Blut-Hirn-Schranke. L-Theanin und Magnesium stabilisieren den GABA-Tonus verlässlicher, ohne die Schranke überwinden zu müssen. [solide für Blut-Hirn-Schranke; Typisierung Modell]",
+    step:"L-Theanin, Magnesium; Fokus auf Atmung und Schlaf.",
+    test:"Klinisch; Magnesium (im Vollblut) als Anhaltspunkt.",warn:""},
+  lowsero:{color:"var(--lowsero)",kicker:"Gefühlte Ebene",title:"Trübsal mit Zucker-Trost-Tendenz — ↓ Serotonin",
+    body:"Grüblerisch, negativ, schlechter abends/im Winter, Heißhunger auf Kohlenhydrate zur Beruhigung.",
+    mech:"Tryptophan muss an der Blut-Hirn-Schranke gegen andere Aminosäuren konkurrieren. Kohlenhydrate verändern die Blutzucker/Insulin-Dynamik zugunsten von Tryptophan. Der abendliche Süß-Heißhunger ist reine Selbstmedikation, um Tryptophan ins Gehirn zu schleusen und Serotonin zu bauen. [solide via Wurtman-Effekt; Typ-Einordnung Modell]",
+    step:"5-HTP oder Tryptophan abends, Lichtexposition.",
+    test:"Vollblut-Histamin, Vitamin-D, Ferritin.",warn:"5-HTP/Tryptophan nie mit SSRI (Serotonin-Syndrom)."},
+  mixed:{color:"var(--mixed)",kicker:"Grenzbereich · erst testen",title:"Gemischter Hybrid-Typ oder Grauzone: erst testen, dann behandeln",
+    body:"Du findest dich in mehreren Karten/Kategorien wieder, keine passt zu 100%.",
+    mech:"Kein Fehler des Tests. Symptome von Über- und Untermethylierern überlappen massiv. Da beide Richtungen entgegengesetzte Protokolle erfordern, blockiert der Test hier bewusst. Ein falsches Protokoll richtet mehr Schaden an als Warten. Laborwerte brechen den Gleichstand. [solide via Design-Prinzip]",
+    step:"Keine Methyl-Spender oder Niacin auf Verdacht. Basis-Unterstützung (Magnesium, Schlaf).",
+    test:"Vollblut-Histamin, Homocystein, Cu:Zn.",warn:""}
+};
+function histMod(b){return b==="high"?'<h3>Histamin-Modifikator – HOCH</h3><p>Vitamin C betonen, Quercetin erwägen, histaminärmer essen.</p>':(b==="low"?'<h3>Histamin-Modifikator – NIEDRIG</h3><p>Wenig Bedarf an Quercetin/Hochdosis-C.</p>':'<h3>Histamin-Modifikator – MITTEL</h3><p>Moderates Vitamin C; Quercetin optional.</p>');}
+
+function chamaeleon(){
+  return '<div class="cham"><h3>Chamäleon-Modus: erst Daten sammeln, dann handeln</h3>'
+    +'<p><b>Sichere Ausgangsbasis zuerst:</b> keine Kombi-B-Komplexe oder hochdosierten Methyl-Spender auf Verdacht; Magnesium (Glycinat/Malat) als Puffer für die Glutamat-Bremse; 15 Min. Morgenlicht, kein spätes Koffein.</p>'
+    +'<details><summary>3-Tage-Histamin-Verzicht</summary><p><b>Ziel:</b> Ist das DAO-Enzym (Darm) überlastet oder feuern Mastzellen?<br><b>Umsetzung:</b> 72 h strikt kein Fermentiertes, kein gereifter Käse, kein Rotwein, keine Knochenbrühe, kein aufgewärmtes Fleisch (nur frisch).<br><b>Signal:</b> Lichtet sich der Hirnnebel nach zwei Tagen, sinkt die Unruhe/der nächtliche Puls → Hinweis auf Histamin/DAO.<br><b>Nächster Schritt:</b> Vollblut-Histamin bestimmen; vorübergehend Quercetin/Vitamin C.</p></details>'
+    +'<details><summary>Koffein-Rücksetzung (5 Tage)</summary><p><b>Ziel:</b> echter Antrieb oder nur ein Kredit auf die Nebennieren?<br><b>Umsetzung:</b> Koffein 5 Tage halbieren (oder ganz weg), max. eine Tasse vor 12 Uhr.<br><b>Signal:</b> Ein bleierner Einbruch = leere Tyrosin-Speicher (du läufst auf Pump). Bleibst du stabil, funktioniert die Grundproduktion.<br><b>Nächster Schritt:</b> bei starkem Einbruch Schilddrüse (TSH, fT3, fT4) prüfen, L-Tyrosin (vormittags) testen.</p></details>'
+    +'<details><summary>Kohlenhydrat-Verschiebung (Serotonin-Test)</summary><p><b>Ziel:</b> den Tryptophan-Transport ins Gehirn gezielt anstoßen.<br><b>Umsetzung:</b> tagsüber vor allem Eiweiß & Fett; die Tages-Kohlenhydrate (Reis/Kartoffeln) erst abends.<br><b>Signal:</b> Schläfst du plötzlich tief und die abendliche „dunkle Wolke“ verschwindet → Serotonin-Engpass wahrscheinlich.<br><b>Nächster Schritt:</b> abends Tryptophan oder 5-HTP (nie mit SSRI).</p></details>'
+    +'<p style="margin-top:8px"><b>Was du mitnimmst:</b> Welcher Stoff nach 48–72 h eine messbare Veränderung brachte, und wie sich Ruhepuls & Schlaf verhielten – harte Beobachtungen statt vager Beschwerden.</p>'
+    +'<button class="lab-btn" id="copyLab">📋 Labor-Marker für den Arzt kopieren</button>'
+    +'<p class="hint" style="margin-top:8px">Optional als späterer Baustein: Gentests (MTHFR, DAO, HNMT, SUOX) können erklären, <i>warum</i> ein Engpass bei dir auftritt – nötig zum Starten sind sie nicht. Die richtigen Nährstoff-Schalter wirken auch ohne.</p></div>';
+}
+function typeCard(key,s){var t=TYPES[key];var h='<h3>Erkennst du dich?</h3><p>'+t.body+'</p><h3>Mechanik</h3><p>'+t.mech+'</p><h3>Erster Schritt</h3><p>'+t.step+'</p><div class="test-box">🔬 <b>Testen:</b> '+t.test+'</div>'+(t.warn?'<div class="warn-box">'+t.warn+'</div>':'');if(key!=="mixed")h+=histMod(s.hi.band);if(key==="mixed")h+=chamaeleon();return h;}
+
+function kg(){var w=parseFloat(document.getElementById("weight").value);if(!w||w<=0)return null;return document.querySelector('#unitTog button.on').dataset.u==="lb"?w/2.2046:w;}
+function readConsumption(){
+  var w=kg(),sex=document.getElementById("sex").value,caf=num("v-caf"),nic=num("v-nic"),alc=num("v-alc"),sug=num("v-sug"),out=[];
+  if(caf>0){var mg=caf*95,pk=w?mg/w:null,l="leicht";if(mg>400||(pk&&pk>6))l="hoch";else if(mg>200||(pk&&pk>3))l="mäßig";out.push({v:"Koffein",lvl:l,line:"≈ "+Math.round(mg)+" mg/Tag"+(pk?" ("+pk.toFixed(1)+" mg/kg)":"")+". FDA-Obergrenze 400 mg/Tag."});}
+  if(nic>0){out.push({v:"Nikotin",lvl:nic>=10?"hoch":(nic>=1?"mäßig":"leicht"),line:"≈ "+(nic*1.1).toFixed(1)+" mg/Tag. Rauchen senkt Hirn-MAO-B um ~40% → echter Monoamin-Einbruch beim Aufhören."});}
+  if(alc>0){var g=alc*14,hw=sex==="f"?7:14,l2="niedrigeres Risiko";if(alc>hw*1.5)l2="hoch";else if(alc>hw)l2="mäßig-hoch";else if(alc>=hw*0.5)l2="mäßig";out.push({v:"Alkohol",lvl:l2,line:alc+" Gläser/Woche ≈ "+Math.round(g)+" g Ethanol. Keine Menge risikofrei."+(alc/7>=4?" <b>Fast täglich/viel:</b> nicht abrupt aufhören – ärztlich begleiten.":"")});}
+  if(sug>0){var gs=sug*12,lim=sex==="f"?25:36;out.push({v:"Zucker",lvl:gs>lim*2?"hoch":(gs>lim?"mäßig":"leicht"),line:"≈ "+Math.round(gs)+" g/Tag vs. Richtwert ~"+lim+" g."});}
+  return out;
+}
+var TUNE={under:"Methylierungsseite sanft, Folsäure meiden, L-Theanin+Magnesium.",lowsero:"Serotonin sanft (5-HTP nie mit SSRI), L-Theanin+Magnesium.",over:"Folat/Niacinamid+Magnesium+L-Theanin; kein Methyl-Nachschlag.",copper:"Zink/Magnesium/L-Theanin, kein Kupfer-Nachschub; Cu:Zn testen.",lowcat:"L-Tyrosin vormittags, Schlaf/Schilddrüse; Koffein ausschleichen.",lowgaba:"L-Theanin/Magnesium; sanft ausschleichen.",primer:"Zuerst Zink+B6; alles sanft, Magnesium.",mixed:"Grundlegend (Magnesium, Schlaf); keine Methyl-Spender/Niacin auf Verdacht."};
+function supportCards(primary,cons){
+  if(!cons.length)return "";var has=function(v){return cons.some(function(c){return c.v===v;});};var tune=TUNE[primary]||TUNE.mixed;
+  var html='<h2><span class="tag">Unterstützung</span> Laster reduzieren – typ-abgestimmt</h2><p class="axis-note"><span class="ebtag eb">SOLIDE</span> Studien · <span class="ebtag model">MODELL</span> Hypothese. Dosen mit Arzt klären.</p>';
+  if(has("Nikotin"))html+='<h3>Nikotin</h3><p><span class="ebtag eb">SOLIDE</span> NAC ~2,4 g/Tag: in Studien weniger Zigaretten/Verlangen (Hinweis: für Sulfit-Empfindliche kann NAC nach hinten losgehen). Mit Nikotinersatz.</p><p><span class="ebtag model">MODELL</span> '+tune+'</p>';
+  if(has("Alkohol"))html+='<h3>Alkohol</h3><div class="warn-box"><b>Zuerst Sicherheit.</b> Täglich/viel? Nicht abrupt aufhören (Krampfanfälle/Delir-Risiko). Ärztlich ausschleichen; Thiamin schützt, stoppt Entzug aber nicht.</div><p><span class="ebtag model">MODELL</span> Glutamat/NMDA-Rebound – Magnesium & Schlaf; '+tune+'</p>';
+  if(has("Koffein"))html+='<h3>Koffein</h3><p><span class="ebtag eb">SOLIDE</span> Um 25% alle paar Tage reduzieren; nichts 6 h vor dem Schlaf.</p><p><span class="ebtag model">MODELL</span> '+tune+'</p>';
+  if(has("Zucker"))html+='<h3>Zucker</h3><p><span class="ebtag eb">SOLIDE</span> Kohlenhydrate mit Eiweiß/Ballaststoffen; flüssigen Zucker zuerst.</p><p><span class="ebtag model">MODELL</span> '+tune+'</p>';
+  return html;
+}
+function tellsCard(){
+  var lines=[],tally={under:0,over:0,pyrrole:0,histamine:0};
+  REACTIONS.forEach(function(r){var v=rx(r.id);if(v==="bad"&&r.b){tally[r.b.t]++;lines.push("<b>"+r.name+":</b> "+r.b.m);}else if(v==="help"&&r.h){tally[r.h.t]++;lines.push("<b>"+r.name+":</b> "+r.h.m);}});
+  if(!lines.length)return "";
+  var lean=null,max=0;for(var k in tally){if(tally[k]>max){max=tally[k];lean=k;}}
+  var names={under:"Untermethylierung/↓Serotonin",over:"Übermethylierung/Kupfer",pyrrole:"Pyrrol (Zink-B6)",histamine:"Histamin"};
+  var html='<h2><span class="tag">Warnleuchten</span> Was deine Reaktionen nahelegen</h2><ul>'+lines.map(function(l){return "<li>"+l+"</li>";}).join("")+'</ul>';
+  if(lean&&max>0)html+='<p style="margin-top:8px">Tendenz: <b>'+names[lean]+'</b>.</p>';
+  return html;
+}
+
+var LAST=null,CONS=null;
+function chip(name,v,u,sub,pct,col){return '<div class="score"><div class="name">'+name+'</div><div class="val">'+v+'<span style="font-size:.8rem;color:var(--muted)"> '+u+'</span></div><div style="font-size:.7rem;color:var(--muted)">'+sub+'</div><div class="bar"><i style="width:'+pct+'%;background:'+col+'"></i></div></div>';}
+function attachLab(){var lb=document.getElementById("copyLab");if(!lb)return;lb.addEventListener("click",function(){var t="Labor-Marker (Neuro-Stoffwechsel-Problemfänger):\n- Vollblut-Histamin\n- Homocystein\n- Kupfer, Coeruloplasmin, Cu:Zn-Verhältnis\n- Zink (Plasma)\n- Schilddrüse: TSH, fT3, fT4\n- Ferritin, Vitamin B12 & D\n(optional Gentests: MTHFR, DAO, HNMT, SUOX)";navigator.clipboard.writeText(t).then(function(){lb.textContent="In Zwischenablage kopiert ✓";}).catch(function(){alert(t);});});}
+function render(){
+  var s=score();LAST=s;var cons=readConsumption();CONS=cons;
+  var tr=traps(s),tw=document.getElementById("trapWrap");
+  var th='<h2 style="font-size:1.05rem;margin:0 0 10px">Deine aktiven Fallen &amp; Sofort-Bremsen</h2>';
+  if(tr.length){tr.forEach(function(t){th+='<div class="trap" style="border-left-color:'+t.color+'"><h4 style="color:'+t.color+'">'+t.title+'</h4><p class="fix">'+t.fix+'</p><div class="test-box">🔬 '+t.test+'</div></div>';});}
+  else{th+='<div class="trap"><p>Keine akute Falle klar ausgelöst – gut. Geh direkt zu deinem Biotyp unten.</p></div>';}
+  th+='<p class="hint">Reihenfolge bei mehreren: erst Mastzellen stabilisieren (Quercetin), dann Neuro-Bremse (Zink/Magnesium), Darm zuletzt.</p>';
+  tw.innerHTML=th;
+  document.getElementById("scores").innerHTML=
+    chip("Methylierung",s.me.M.toFixed(0),"/100","0 Unter · 100 Über",s.me.M,"linear-gradient(90deg,var(--under),var(--over))")
+   +chip("Pyrrol",s.py.P.toFixed(0),"/100","Override ab 60",s.py.P,"var(--primer)")
+   +chip("Kupfer",s.cu.pts.toFixed(1),"Pkt","Spur ab 7",Math.min(100,s.cu.pts/12*100),"var(--copper)")
+   +chip("Histamin",s.hi.H.toFixed(0),"/100","Modif.: "+s.hi.band,s.hi.H,"var(--warn)");
+  document.getElementById("mathBody").innerHTML='<div class="rule">'+s.rule+'</div><p style="margin:8px 0 0">M='+s.me.M.toFixed(1)+' (ohne Top-Item M2='+s.me.M2.toFixed(1)+') · P='+s.py.P.toFixed(1)+' · Kupfer='+s.cu.pts.toFixed(1)+' · Histamin='+s.hi.H.toFixed(1)+'</p><p style="margin:6px 0 0;color:var(--muted)">NT: Sero '+s.nt.s+' · Kat '+s.nt.c+' · GABA '+s.nt.g+(s.nt.dom?" → ↓"+s.nt.dom:" → kein klarer Mangel")+'</p>';
+  var t=TYPES[s.primary],band=document.getElementById("resultBand");
+  band.style.background=t.color;
+  document.getElementById("resKicker").textContent=t.kicker;
+  document.getElementById("resTitle").textContent=t.title;
+  document.getElementById("resConf").textContent="Sicherheit: "+s.conf;
+  var body=typeCard(s.primary,s);
+  if(s.secondary&&s.secondary!==s.primary){var st=TYPES[s.secondary];body='<div class="sec-box"><b>Nebentyp (gefühlt):</b> '+st.title+'. '+st.body+'</div>'+body;}
+  s.flags.forEach(function(f){body='<div class="flag-box">'+f+'</div>'+body;});
+  document.getElementById("resBody").innerHTML=body;
+  attachLab();
+  var cc=document.getElementById("consumptionCard");if(cons.length){cc.style.display="block";cc.innerHTML='<h2><span class="tag">Laster</span> Dein Konsum-Bild</h2>'+cons.map(function(c){return "<h3>"+c.v+" – "+c.lvl+"</h3><p>"+c.line+"</p>";}).join("");}else cc.style.display="none";
+  var sc=document.getElementById("supportCard"),sh=supportCards(s.primary,cons);if(sh){sc.style.display="block";sc.innerHTML=sh;}else sc.style.display="none";
+  var tc=document.getElementById("tellsCard"),tt=tellsCard();if(tt){tc.style.display="block";tc.innerHTML=tt;}else tc.style.display="none";
+  document.getElementById("results").style.display="block";
+  document.getElementById("trapWrap").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+var fit=null;
+function buildFeedback(full){
+  var s=LAST;if(!s)return "";
+  var t="NEURO-STOFFWECHSEL-PROBLEMFÄNGER v1.1 – Rückmeldung\nHaupttyp: "+TYPES[s.primary].title+"\n"+(s.secondary?("Nebentyp: "+TYPES[s.secondary].title+"\n"):"")+"Sicherheit: "+s.conf+"\nPasst: "+(fit||"(k.A.)")+"\nKommentar: "+(document.getElementById("fbText").value||"(leer)");
+  t+="\nStartfragen: Hist "+iv("ph1")+" Sulf "+iv("ph2")+" Methyl "+iv("ph3")+" Pyrrol "+iv("ph4");
+  if(full){
+    var ans=[].concat(AXES[1].items,AXES[2].items,AXES.C.items,AXES[3].items,AXES.B.items).map(function(it){return "  "+it.title+": "+val(it.id);}).join("\n");
+    var rxs=REACTIONS.map(function(r){return "  "+r.name+": "+rx(r.id);}).join("\n");
+    t+="\nWerte: M "+s.me.M.toFixed(0)+" P "+s.py.P.toFixed(0)+" Cu "+s.cu.pts.toFixed(1)+" H "+s.hi.H.toFixed(0)+"\nAntworten:\n"+ans+"\nReaktionen:\n"+rxs;
+    if(CONS&&CONS.length)t+="\nKonsum:\n"+CONS.map(function(c){return "  "+c.v+": "+c.lvl;}).join("\n");
+  }
+  return t;
+}
+
+document.addEventListener("DOMContentLoaded",function(){
+  [1,2,"C",3,"B"].forEach(buildAxis);
+  buildReactions();
+  paintSliders();
+  updateReactionVisibility();
+  ["ph1","ph2","ph3","ph4","horm"].forEach(function(id){document.getElementById(id).addEventListener("change",updateReactionVisibility);});
+  document.querySelectorAll("#unitTog button").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll("#unitTog button").forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});
+  document.getElementById("calc").addEventListener("click",render);
+  document.querySelectorAll("#fitBtns button").forEach(function(btn){btn.addEventListener("click",function(){document.querySelectorAll("#fitBtns button").forEach(function(b){b.classList.remove("active");});btn.classList.add("active");fit=btn.dataset.fit;});});
+  document.getElementById("mailBtn").addEventListener("click",function(){
+    if(!LAST){alert("Bitte zuerst berechnen.");return;}
+    if(FEEDBACK_FORM_URL){window.open(FEEDBACK_FORM_URL,"_blank");return;}
+    var full=buildFeedback(document.getElementById("fbFull").checked),short=buildFeedback(false);
+    try{navigator.clipboard.writeText(full);}catch(e){}
+    var href="mailto:"+FEEDBACK_EMAIL+"?subject="+encodeURIComponent("Neuro-Stoffwechsel-Problemfänger v1.1 Feedback")+"&body="+encodeURIComponent(short);
+    var a=document.createElement("a");a.href=href;a.rel="noopener";document.body.appendChild(a);a.click();document.body.removeChild(a);
+    var m=document.getElementById("copiedMsg");m.textContent="Kein Mailprogramm? Feedback ist kopiert – an "+FEEDBACK_EMAIL+" einfügen.";m.style.opacity=1;setTimeout(function(){m.style.opacity=0;m.textContent="Kopiert ✓";},7000);
+  });
+  document.getElementById("copyBtn").addEventListener("click",function(){if(!LAST){alert("Bitte zuerst berechnen.");return;}var body=buildFeedback(document.getElementById("fbFull").checked);navigator.clipboard.writeText(body).then(function(){var m=document.getElementById("copiedMsg");m.style.opacity=1;setTimeout(function(){m.style.opacity=0;},1800);}).catch(function(){alert(body);});});
+});
+</script>
+</body>
+</html>
